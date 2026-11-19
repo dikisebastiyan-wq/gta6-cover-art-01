@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Neon Shore Cover Studio — turn any photo and caption into GTA-style poster cover art, offline in your browser, exported as a PNG.">
+<title>Neon Shore Cover Studio — GTA-style cover art maker</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">NS</span>
+    <div>
+      <h1>Neon Shore Cover Studio</h1>
+      <p>Turn any photo and caption into poster-style cover art. Photos stay on your machine — nothing is uploaded.</p>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button id="undoBtn" type="button" title="Undo (Ctrl+Z)">↶ Undo</button>
+    <button id="redoBtn" type="button" title="Redo (Ctrl+Y)">↷ Redo</button>
+    <button id="randomBtn" type="button" title="Shuffle layout, grade and title placement">🎲 Surprise me</button>
+  </div>
+</header>
+
+<main class="studio">
+  <section class="preview-wrap" aria-label="Cover preview">
+    <canvas id="previewCanvas" width="720" height="720" aria-label="Live cover preview. Click a panel to select it, drag to move its photo."></canvas>
+    <p class="preview-hint">Click a panel to select it, then drag the photo inside it. Use the zoom slider to crop tighter.</p>
+    <p id="statusLine" class="status" role="status">Load a photo or try a sample to begin.</p>
+  </section>
+
+  <aside class="controls" aria-label="Cover controls">
+    <section class="group">
+      <h2>1 · Photos</h2>
+      <label class="file-label">Add your photos
+        <input id="photoInput" type="file" accept="image/*" multiple>
+      </label>
+      <div class="sample-row">
+        <button id="sampleBoulevardBtn" type="button">Sample · Boulevard</button>
+        <button id="samplePierBtn" type="button">Sample · Pier</button>
+      </div>
+      <div id="photoTray" class="photo-tray" aria-label="Loaded photos"></div>
+      <p class="note">Click a photo, then “Use in selected panel”. “Fill all panels” puts it everywhere at once.</p>
+      <div class="row">
+        <button id="usePhotoBtn" type="button">Use in selected panel</button>
+        <button id="fillAllBtn" type="button">Fill all panels</button>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2>2 · Layout &amp; size</h2>
+      <div id="layoutRow" class="choice-row" role="group" aria-label="Panel layout">
+        <button type="button" data-layout="hero">Hero + 3</button>
+        <button type="button" data-layout="full">Full bleed</button>
+        <button type="button" data-layout="duo">Duo</button>
+        <button type="button" data-layout="trio">Trio</button>
+        <button type="button" data-layout="nine">Nine grid</button>
+      </div>
+      <label class="field">Post size
+        <select id="sizeSelect">
+          <option value="1080x1080">Square · 1080 × 1080</option>
+          <option value="1080x1350">Portrait · 1080 × 1350</option>
+          <option value="1920x1080">Landscape · 1920 × 1080</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="group">
+      <h2>3 · Selected panel</h2>
+      <p class="note">Panel <strong id="selectedPanelLabel">1</strong> of <span id="panelCountLabel">4</span> selected.</p>
+      <label class="field">Zoom
+        <input id="zoomSlider" type="range" min="1" max="3" step="0.01" value="1.15">
+      </label>
+      <div class="row">
+        <button id="nudgeLeftBtn" type="button">← Move</button>
+        <button id="nudgeRightBtn" type="button">Move →</button>
+        <button id="nudgeUpBtn" type="button">↑ Move</button>
+        <button id="nudgeDownBtn" type="button">↓ Move</button>
+      </div>
+      <button id="resetPanelBtn" type="button">Reset this panel</button>
+    </section>
+
+    <section class="group">
+      <h2>4 · Caption</h2>
+      <label class="field">Title
+        <input id="titleInput" type="text" maxlength="24" value="Neon Shore">
+      </label>
+      <label class="field">Subtitle
+        <input id="subtitleInput" type="text" maxlength="40" value="a vice city story">
+      </label>
+      <label class="field">Title size
+        <input id="titleSizeSlider" type="range" min="0.6" max="1.6" step="0.05" value="1">
+      </label>
+      <label class="field">Title position
+        <select id="titlePosSelect">
+          <option value="top">Top of cover</option>
+          <option value="middle" selected>Middle band</option>
+          <option value="bottom">Bottom of cover</option>
+        </select>
+      </label>
+      <div id="titleStyleRow" class="choice-row" role="group" aria-label="Title style">
+        <button type="button" data-title-style="outline">Bold outline</button>
+        <button type="button" data-title-style="sunset">Sunset fill</button>
+        <button type="button" data-title-style="neon">Neon glow</button>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2>5 · Colour grade</h2>
+      <div id="gradeRow" class="choice-row" role="group" aria-label="Colour grade">
+        <button type="button" data-grade="vice">Vice Sunset</button>
+        <button type="button" data-grade="neon">Neon Night</button>
+        <button type="button" data-grade="palm">Palm Gold</button>
+        <button type="button" data-grade="frost">Cold Violet</button>
+      </div>
+      <label class="field">Grade strength
+        <input id="gradeSlider" type="range" min="0" max="1" step="0.05" value="0.55">
+      </label>
+      <label class="field check"><input id="grainCheck" type="checkbox" checked> Film grain &amp; vignette</label>
+      <label class="field check"><input id="palmsCheck" type="checkbox" checked> Palm silhouettes</label>
+    </section>
+
+    <section class="group export-group">
+      <h2>6 · Export</h2>
+      <button id="exportBtn" type="button" class="export-btn">⬇ Export PNG</button>
+      <p class="note">Exports the exact post size above, as a PNG download. No upload, no watermark.</p>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  <p>Neon Shore Cover Studio — an original cover maker. No Rockstar Games logo, artwork, character or font is used. Display type: Anton (SIL OFL). Script type: Pacifico (SIL OFL). Sample photos were made with an image model for make.fun and are free to use.</p>
+</footer>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
